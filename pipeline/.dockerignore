@@ -1,0 +1,13 @@
+.env
+.venv/
+venv/
+**/__pycache__/
+**/*.pyc
+*.log
+logs/
+sessions/
+data/
+gui/
+run_pipeline.bat
+run_pipeline.command
+requirements-mac.txt

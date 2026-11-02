@@ -1,0 +1,9 @@
+* text=auto eol=lf
+
+# Script Windows tetap CRLF
+*.bat text eol=crlf
+
+*.blade.php diff=html
+*.php diff=php
+*.py diff=python
+*.md diff=markdown

@@ -1,0 +1,4 @@
+# Khusus Mac Apple Silicon: tambahan MLX untuk verifikator Qwen (tahap verifikasi sentimen negatif).
+# Tanpa paket ini (mis. di Docker/Linux) tahap verifikasi Qwen otomatis dilewati.
+-r requirements.txt
+mlx-lm

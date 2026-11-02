@@ -1,0 +1,81 @@
+# Sentiment Analysis - frontend (Svelte SPA), backend (Laravel API), pipeline (Python).
+# Database TIDAK dijalankan di sini: lokal = MariaDB XAMPP di komputer host, produksi = server database.
+#
+#   browser --> frontend:8080 (nginx) --/api/ internal--> backend:8080 --> MySQL <-- pipeline
+#
+# Lokal   : docker compose --env-file default.env up -d --build
+# Produksi: docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+name: sentiment-analysis
+
+x-database: &database
+  DB_CONNECTION: mysql
+  DB_HOST: ${DOCKER_DB_HOST:-${DB_HOST:?pakai --env-file default.env atau .env.prod}}
+  DB_PORT: ${DB_PORT:-3306}
+  DB_DATABASE: ${DB_DATABASE}
+  DB_USERNAME: ${DB_USERNAME}
+  DB_PASSWORD: ${DB_PASSWORD}
+
+# host.docker.internal = komputer host (dipakai lokal untuk MariaDB XAMPP; juga berlaku di server Linux)
+x-host-gateway: &host-gateway
+  - "host.docker.internal:host-gateway"
+
+services:
+  backend:
+    build: ./backend
+    image: ${IMAGE_PREFIX:-sentiment-analysis}/backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    extra_hosts: *host-gateway
+    environment:
+      <<: *database
+      APP_NAME: "Sentiment Analysis API"
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_KEY: ${APP_KEY:?isi APP_KEY}
+      APP_URL: http://backend:8080
+      APP_TIMEZONE: Asia/Jakarta
+      SESSION_DRIVER: array
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+    # Tidak ada "ports": backend hanya diakses frontend lewat jaringan internal
+    networks:
+      - internal
+
+  frontend:
+    build: ./frontend
+    image: ${IMAGE_PREFIX:-sentiment-analysis}/frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8000}:8080"
+    networks:
+      - internal
+
+  # Opsional: hanya jalan bila profil "pipeline" aktif (COMPOSE_PROFILES=pipeline di file env)
+  pipeline:
+    profiles: [pipeline]
+    build: ./pipeline
+    image: ${IMAGE_PREFIX:-sentiment-analysis}/pipeline:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    extra_hosts: *host-gateway
+    environment:
+      <<: *database
+      HF_TOKEN: ${HF_TOKEN:-}
+      PIPELINE_INTERVAL_MINUTES: ${PIPELINE_INTERVAL_MINUTES:-60}
+    volumes:
+      - pipeline-cache:/data/home          # cache model Hugging Face / EasyOCR / Argos
+      - pipeline-logs:/app/logs
+      - pipeline-data:/app/data
+      - ./pipeline/sessions:/app/sessions  # ig_session.json & x_session.json (login dibuat di desktop)
+    shm_size: 1gb                          # Chromium (Playwright) butuh shared memory lebih besar
+    networks:
+      - internal
+
+networks:
+  internal:
+
+volumes:
+  pipeline-cache:
+  pipeline-logs:
+  pipeline-data:

@@ -1,0 +1,33 @@
+# Rahasia & konfigurasi lokal
+.env
+.env.*
+!.env.prod.example
+!.env.prod.full.example
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Python (pipeline)
+__pycache__/
+*.pyc
+.venv/
+venv/
+pipeline/logs/*
+pipeline/data/*
+pipeline/sessions/**/*.json
+!pipeline/**/.gitkeep
+
+# Log di mana pun
+*.log
+*.lock
+!composer.lock
+
+# Salinan database produksi (data asli, jangan di-commit)
+database/init/*.sql.gz
+
+# Frontend
+node_modules/
+dist/

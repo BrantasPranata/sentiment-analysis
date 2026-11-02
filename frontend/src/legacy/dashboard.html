@@ -1,0 +1,508 @@
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-xl text-indigo-400">
+                    <i class="ph-bold ph-chart-polar text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-tight">Dashboard Sentiment Analysis</h1>
+                    <p class="text-xs text-slate-400">External Endpoint: <span class="font-mono text-indigo-400">13 portal berita, X, YouTube, & Instagram</span></p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <!-- Tombol Kelola Keyword -->
+                <button onclick="openKeywordModal()" class="flex items-center space-x-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-xl transition shadow-lg shadow-amber-600/20">
+                    <i class="ph-bold ph-key text-lg"></i>
+                    <span>Kelola Keyword</span>
+                </button>
+                <button onclick="loadDataFromAPI(); loadInsightData();" class="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition shadow-lg shadow-indigo-600/30">
+                    <i class="ph-bold ph-arrows-counter-clockwise text-lg"></i>
+                    <span>Refresh Data</span>
+                </button>
+                <!-- Info User & Logout -->
+                <div class="flex items-center space-x-2 pl-3 ml-1 border-l border-slate-700">
+                    <div class="text-right leading-tight hidden sm:block">
+                        <p id="auth-user-name" class="text-xs font-semibold text-white">-</p>
+                        <p id="auth-user-role" class="text-[10px] text-slate-400">-</p>
+                    </div>
+                    <button onclick="logout()" title="Logout" class="flex items-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-rose-600 border border-slate-700 hover:border-rose-500 text-slate-200 hover:text-white text-sm font-medium rounded-xl transition">
+                        <i class="ph-bold ph-sign-out text-lg"></i>
+                        <span class="hidden md:inline">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+
+        <!-- Metrics Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium" title="Seluruh konten sesuai filter (bukan hanya yang tampil di halaman ini)">Total Konten</p>
+                    <h3 id="stat-total" class="text-2xl font-bold text-white mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl"><i class="ph-bold ph-database text-2xl"></i></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Sentimen Positif</p>
+                    <h3 id="stat-positive" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl"><i class="ph-bold ph-smiley text-2xl"></i></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Sentimen Negatif</p>
+                    <h3 id="stat-negative" class="text-2xl font-bold text-rose-400 mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-rose-500/10 text-rose-400 rounded-xl"><i class="ph-bold ph-smiley-sad text-2xl"></i></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Sentimen Netral</p>
+                    <h3 id="stat-neutral" class="text-2xl font-bold text-amber-400 mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl"><i class="ph-bold ph-smiley-meh text-2xl"></i></div>
+            </div>
+        </div>
+
+        <!-- Metrics Komentar (dari comments_summary tiap konten yang tampil) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium" title="Seluruh komentar dari konten yang sesuai filter">Total Komentar</p>
+                    <h3 id="stat-c-total" class="text-2xl font-bold text-white mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl"><i class="ph-bold ph-chat-circle-dots text-2xl"></i></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Komentar Positif</p>
+                    <h3 id="stat-c-positive" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl"><i class="ph-bold ph-thumbs-up text-2xl"></i></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Komentar Negatif</p>
+                    <h3 id="stat-c-negative" class="text-2xl font-bold text-rose-400 mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-rose-500/10 text-rose-400 rounded-xl"><i class="ph-bold ph-thumbs-down text-2xl"></i></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Komentar Netral</p>
+                    <h3 id="stat-c-neutral" class="text-2xl font-bold text-amber-400 mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl"><i class="ph-bold ph-minus-circle text-2xl"></i></div>
+            </div>
+        </div>
+
+        <!-- Header Grafik + Toggle (satu tombol untuk SEMUA grafik) -->
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                <i class="ph-bold ph-chart-line-up text-indigo-400 text-xl"></i>
+                <span>Grafik & Insight</span>
+            </h3>
+            <button id="charts-toggle-btn" onclick="toggleAllCharts()" aria-expanded="true" class="flex items-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium rounded-lg transition">
+                <i id="charts-toggle-icon" class="ph-bold ph-caret-up text-sm"></i>
+                <span id="charts-toggle-label">Tutup Semua Grafik</span>
+            </button>
+        </div>
+
+        <!-- PANEL GRAFIK SEDERHANA (Di bawah panel angka, di atas filter) -->
+        <div id="simple-charts-body" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="md:col-span-2 bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl">
+                <!-- Judul + pilihan Konten / Komentar (tinggi baris dijaga sama dengan sebelumnya) -->
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-sm font-semibold text-white flex items-center space-x-2">
+                        <i class="ph-bold ph-chart-bar text-indigo-400"></i>
+                        <span>Distribusi Jumlah Sentimen per Sumber</span>
+                    </h4>
+                    <div class="flex items-center bg-slate-900/70 border border-slate-700/70 rounded-lg p-0.5 -my-1">
+                        <button type="button" id="bar-mode-konten" onclick="setBarMode('konten')" class="px-2.5 py-0.5 text-[11px] leading-4 font-semibold rounded-md transition flex items-center space-x-1">
+                            <i class="ph-bold ph-newspaper text-xs"></i><span>Konten</span>
+                        </button>
+                        <button type="button" id="bar-mode-komentar" onclick="setBarMode('komentar')" class="px-2.5 py-0.5 text-[11px] leading-4 font-semibold rounded-md transition flex items-center space-x-1">
+                            <i class="ph-bold ph-chat-circle-dots text-xs"></i><span>Komentar</span>
+                        </button>
+                    </div>
+                </div>
+                <p id="bar-subtitle" class="text-[11px] text-slate-500 -mt-2 mb-3">Jumlah konten per sumber (seluruh data sesuai filter) &middot; angka di atas batang = total</p>
+                <div class="h-64 relative">
+                    <canvas id="sentimentBarChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl">
+                <h4 class="text-sm font-semibold text-white mb-4 flex items-center space-x-2">
+                    <i class="ph-bold ph-chart-pie text-indigo-400"></i>
+                    <span>Proporsi Sentimen</span>
+                </h4>
+                <div class="h-56 relative flex justify-center items-center">
+                    <canvas id="sentimentPieChart"></canvas>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-3 text-center">Cincin luar = konten &middot; cincin dalam = komentar</p>
+            </div>
+        </div>
+
+        <!-- PANEL GRAFIK INSIGHT (Data dari /api/insight) -->
+        <div class="mb-8">
+            <div id="insight-error" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs rounded-xl flex items-center justify-between">
+                <span class="flex items-center space-x-2"><i class="ph-bold ph-warning-circle text-base"></i><span id="insight-error-msg">Gagal memuat data insight.</span></span>
+                <button onclick="loadInsightData()" class="underline hover:text-rose-200">Coba lagi</button>
+            </div>
+
+            <div id="insight-body">
+            <style>
+                .kw-node { animation: kwPop .55s cubic-bezier(.2,.9,.3,1.2) backwards; transition: opacity .2s, filter .15s; cursor: pointer; }
+                .kw-node:hover { filter: brightness(1.15); }
+                @keyframes kwPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+            </style>
+
+            <!-- Baris 1: Klaster Kata Kunci (kiri, lebih lebar) + Sentimen per Topik (kanan, sedikit lebih kecil) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+                <!-- Keyword Cluster (bubble cluster ala Drone Emprit) -->
+                <div class="lg:col-span-7 bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl">
+                    <div class="flex items-center justify-between mb-1">
+                        <h4 class="text-sm font-semibold text-white flex items-center space-x-2">
+                            <i class="ph-bold ph-circles-three-plus text-indigo-400"></i>
+                            <span>Klaster Kata Kunci</span>
+                        </h4>
+                        <div class="flex items-center space-x-3 text-[11px] text-slate-400">
+                            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Positif</span></span>
+                            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span>Negatif</span></span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mb-2">Ukuran bubble = frekuensi kemunculan kata</p>
+                    <div id="keywordCluster" class="relative h-[26rem]"></div>
+                </div>
+
+                <!-- Topic Sentiment Insight -->
+                <div class="lg:col-span-5 bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-semibold text-white flex items-center space-x-2">
+                            <i class="ph-bold ph-chats-circle text-indigo-400"></i>
+                            <span>Sentimen AI per Topik Pembicaraan</span>
+                        </h4>
+                        <span class="text-[11px] text-slate-500">Jumlah komentar per topik</span>
+                    </div>
+                    <div class="h-[26rem] relative">
+                        <canvas id="topicSentimentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baris 1b: Keterkaitan Topik -> Kata Lain (1 baris penuh) -->
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-1">
+                    <h4 class="text-sm font-semibold text-white flex items-center space-x-2">
+                        <i class="ph-bold ph-graph text-indigo-400"></i>
+                        <span>Keterkaitan Topik dengan Kata Lain</span>
+                    </h4>
+                    <span class="text-[11px] text-slate-500">Kata yang paling sering muncul bersama topik di komentar yang sama · tebal garis = jumlah komentar</span>
+                </div>
+                <div id="topicLinkChips" class="flex flex-wrap gap-2 mb-3"></div>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400 mb-2">
+                    <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Dominan positif</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span>Dominan negatif</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span>Dominan netral</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span><span>Belum dianalisis</span></span>
+                </div>
+                <div id="topicLinkBody" class="overflow-x-auto"></div>
+            </div>
+
+            <!-- Baris 2: Peta Kuadran Sentimen (1 baris penuh) -->
+            <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-1">
+                    <h4 class="text-sm font-semibold text-white flex items-center space-x-2">
+                        <i class="ph-bold ph-chart-scatter text-indigo-400"></i>
+                        <span>Peta Kuadran Sentimen</span>
+                    </h4>
+                    <span class="text-[11px] text-slate-500">Ukuran bubble = jumlah kasus · posisi vertikal = rata-rata confidence</span>
+                </div>
+                <div class="h-[30rem] relative">
+                    <canvas id="quadrantChart"></canvas>
+                </div>
+                <div id="quadrant-detail" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5"></div>
+            </div>
+            </div><!-- /insight-body -->
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-2xl mb-8 shadow-xl">
+            <!-- Baris 1: pencarian & filter umum -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div class="sm:col-span-2 lg:col-span-2 relative">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
+                    <input type="text" id="filter-search" oninput="debounceLoad()" placeholder="Cari judul / kata kunci..."
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div>
+                    <select id="filter-limit" onchange="loadDataFromAPI()" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+                        <option value="30">Tampil: 30</option>
+                        <option value="60">Tampil: 60</option>
+                        <option value="100">Tampil: 100</option>
+                        <option value="200">Tampil: 200</option>
+                        <option value="all">Tampil: Semua Data</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="filter-platform" onchange="loadDataFromAPI()" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+                        <option value="">Semua Platform</option>
+                        <optgroup label="Portal Berita">
+                            <option value="detik">Detikcom</option>
+                            <option value="antara">Antara News</option>
+                            <option value="kompas">Kompas</option>
+                            <option value="cnn">CNN Indonesia</option>
+                            <option value="tribun">Tribunnews</option>
+                            <option value="metrotv">Metro TV News</option>
+                            <option value="beritasatu">Berita Satu</option>
+                            <option value="kabarika">Kabarika ID</option>
+                            <option value="republika">Republika</option>
+                            <option value="idntimes">IDN Times</option>
+                            <option value="rri">RRI</option>
+                            <option value="pertanian">Kementerian Pertanian</option>
+                            <option value="viva">VIVA</option>
+                        </optgroup>
+                        <optgroup label="Media Sosial">
+                            <option value="x">X / Twitter</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="instagram">Instagram</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div>
+                    <select id="filter-sentiment" onchange="loadDataFromAPI()" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+                        <option value="">Semua Sentimen</option>
+                        <option value="positive">Positif</option>
+                        <option value="negative">Negatif</option>
+                        <option value="neutral">Netral</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="filter-status" onchange="loadDataFromAPI()" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+                        <option value="">Semua Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Baris 2: filter tanggal (analyzed_at & published_at) + tombol bersihkan -->
+            <div class="mt-4 pt-4 border-t border-slate-700/70 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                <!-- Filter Tanggal Analisis (analyzed_at) -->
+                <div class="lg:col-span-2">
+                    <label class="flex items-center space-x-1.5 text-[11px] font-semibold text-slate-300 mb-1.5">
+                        <i class="ph-bold ph-brain text-indigo-400"></i>
+                        <span>Tanggal Analisis <span class="font-mono font-normal text-slate-500">(analyzed_at)</span></span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        <input type="date" id="filter-date-from" onchange="loadDataFromAPI()" title="Dianalisa pada - Dari" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+                        <span class="text-slate-500 text-xs">s/d</span>
+                        <input type="date" id="filter-date-to" onchange="loadDataFromAPI()" title="Dianalisa pada - Hingga" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <!-- Filter Tanggal Terbit (published_at) -->
+                <div class="lg:col-span-2">
+                    <label class="flex items-center space-x-1.5 text-[11px] font-semibold text-slate-300 mb-1.5">
+                        <i class="ph-bold ph-calendar-check text-emerald-400"></i>
+                        <span>Tanggal Terbit <span class="font-mono font-normal text-slate-500">(published_at)</span></span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        <input type="date" id="filter-pub-from" onchange="loadDataFromAPI()" title="Published At - Dari" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+                        <span class="text-slate-500 text-xs">s/d</span>
+                        <input type="date" id="filter-pub-to" onchange="loadDataFromAPI()" title="Published At - Hingga" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <!-- Tombol Bersihkan Filter -->
+                <div>
+                    <button type="button" onclick="resetFilters()" class="w-full flex items-center justify-center space-x-2 px-3 py-2.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 text-xs font-semibold rounded-xl transition">
+                        <i class="ph-bold ph-funnel-x text-sm"></i>
+                        <span>Bersihkan Filter</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Grid Display -->
+        <div id="content-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scroll-mt-24">
+            <div class="col-span-full py-16 text-center text-slate-400">
+                <i class="ph-bold ph-spinner animate-spin text-4xl text-indigo-500 mb-2"></i>
+                <p>Mengambil data dari API Sentimen...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination-bar" class="hidden mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p id="pagination-info" class="text-xs text-slate-400"></p>
+            <div id="pagination-buttons" class="flex flex-wrap items-center justify-center gap-1.5"></div>
+        </div>
+
+    </main>
+
+    <!-- Overlay Login (tampil selama belum ada sesi login yang valid) -->
+    <div id="login-overlay" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-4">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-6">
+                <div class="inline-flex p-3.5 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl text-indigo-400 mb-4">
+                    <i class="ph-bold ph-chart-polar text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white tracking-tight">Dashboard Sentiment Analysis</h2>
+                <p class="text-sm text-slate-400 mt-1">Silakan login untuk melanjutkan</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 space-y-4 shadow-2xl">
+                <div id="login-alert" class="hidden px-3 py-2 rounded-lg text-xs font-medium bg-rose-500/10 border border-rose-500/30 text-rose-300"></div>
+
+                <div>
+                    <label for="login-username" class="block text-xs font-medium text-slate-400 mb-1.5">Username</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input id="login-username" type="text" autocomplete="username" required autofocus
+                            class="w-full pl-10 pr-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500"
+                            placeholder="Masukkan username">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="login-password" class="block text-xs font-medium text-slate-400 mb-1.5">Password</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input id="login-password" type="password" autocomplete="current-password" required
+                            class="w-full pl-10 pr-10 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500"
+                            placeholder="Masukkan password">
+                        <button type="button" onclick="togglePasswordVisibility()" tabindex="-1" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                            <i id="login-pw-icon" class="ph-bold ph-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="login-submit" type="submit" class="w-full flex items-center justify-center space-x-2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-indigo-600/30">
+                    <i id="login-submit-icon" class="ph-bold ph-sign-in text-lg"></i>
+                    <span id="login-submit-text">Login</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Detail Konten -->
+    <div id="detail-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 text-white shadow-2xl">
+            <div class="flex justify-between items-start mb-4">
+                <span id="modal-platform" class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Platform</span>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <h3 id="modal-title" class="text-lg font-bold mb-3 leading-snug">Judul Konten</h3>
+            
+            <div id="modal-media-container" class="mb-4 rounded-xl overflow-hidden bg-slate-950 hidden">
+                <img id="modal-media-img" src="" alt="Thumbnail" class="w-full max-h-64 object-cover">
+            </div>
+
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono mb-4 whitespace-pre-wrap max-h-48 overflow-y-auto" id="modal-raw-text">Raw text...</div>
+
+            <div class="grid grid-cols-2 gap-3 text-xs bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 mb-4">
+                <div><span class="text-slate-400">Model ML:</span> <span id="modal-model" class="font-medium text-slate-200">-</span></div>
+                <div><span class="text-slate-400">Confidence:</span> <span id="modal-confidence" class="font-medium text-slate-200">0%</span></div>
+                <div><span class="text-slate-400">Dianalisis:</span> <span id="modal-analyzed" class="font-medium text-slate-200">-</span></div>
+                <div><span class="text-slate-400">Published At:</span> <span id="modal-published" class="font-medium text-slate-200">-</span></div>
+            </div>
+
+            <div id="modal-comments-summary" class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 mb-4"></div>
+
+            <div id="modal-comments-section" class="hidden border-t border-slate-800 pt-4 mb-4">
+                <h4 class="text-sm font-bold text-slate-200 mb-3 flex items-center justify-between">
+                    <span>Daftar Komentar</span>
+                    <span id="modal-comments-count" class="text-xs font-normal text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md">0 Komentar</span>
+                </h4>
+                <div id="modal-comments-list" class="space-y-2.5 max-h-60 overflow-y-auto pr-1"></div>
+            </div>
+
+            <div class="mt-6 flex justify-between items-center pt-2 border-t border-slate-800/60">
+                <button id="btn-load-comments" onclick="toggleComments()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 hover:text-indigo-300 rounded-xl text-xs font-semibold flex items-center space-x-2 transition">
+                    <i class="ph-bold ph-chat-circle-dots text-sm"></i>
+                    <span id="btn-comments-text">Daftar Komen</span>
+                </button>
+                <a id="modal-link" href="#" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition">
+                    <span>Buka Sumber Asli</span>
+                    <i class="ph-bold ph-arrow-square-out text-sm"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KEYWORD -->
+    <div id="keyword-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 text-white shadow-2xl">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 bg-amber-500/20 text-amber-400 rounded-lg">
+                        <i class="ph-bold ph-key text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Kelola Custom Keywords</h3>
+                        <p class="text-xs text-slate-400">Maksimal 10 keyword aktif per platform</p>
+                    </div>
+                </div>
+                <button onclick="closeKeywordModal()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-slate-300 mb-2">PILIH PLATFORM:</label>
+                <select id="kw-platform-select" onchange="fetchKeywordsForPlatform()" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 transition font-medium">
+                    <option value="1">Detikcom (ID: 1)</option>
+                    <option value="2">Antara News (ID: 2)</option>
+                    <option value="3">Kompas (ID: 3)</option>
+                    <option value="4">X / Twitter (ID: 4)</option>
+                    <option value="5">YouTube (ID: 5)</option>
+                    <option value="6">Instagram (ID: 6)</option>
+                    <option value="7">CNN Indonesia (ID: 7)</option>
+                    <option value="8">Tribunnews (ID: 8)</option>
+                    <option value="9">Metro TV News (ID: 9)</option>
+                    <option value="10">Berita Satu (ID: 10)</option>
+                    <option value="11">Kabarika ID (ID: 11)</option>
+                    <option value="12">Republika (ID: 12)</option>
+                    <option value="13">IDN Times (ID: 13)</option>
+                    <option value="14">RRI (ID: 14)</option>
+                    <option value="15">Kementerian Pertanian (ID: 15)</option>
+                    <option value="16">VIVA (ID: 16)</option>
+                </select>
+            </div>
+
+            <div id="kw-loading-indicator" class="hidden text-center py-6 text-amber-400 text-xs">
+                <i class="ph-bold ph-spinner animate-spin text-2xl mb-1"></i>
+                <p>Memuat kata kunci...</p>
+            </div>
+
+            <form id="kw-form" onsubmit="saveKeywords(event)" class="space-y-3">
+                <div class="flex justify-between items-center text-xs font-semibold text-slate-400 px-1">
+                    <span># SLOT KEYWORD</span>
+                    <span>TINDAKAN</span>
+                </div>
+
+                <div id="kw-inputs-container" class="space-y-2.5"></div>
+
+                <div id="kw-alert" class="hidden p-3 rounded-xl text-xs font-medium mt-4"></div>
+
+                <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end space-x-3">
+                    <button type="button" onclick="closeKeywordModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+                        Tutup
+                    </button>
+                    <button type="submit" id="kw-save-btn" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-amber-600/20">
+                        <i class="ph-bold ph-floppy-disk text-base"></i>
+                        <span>Simpan Perubahan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->

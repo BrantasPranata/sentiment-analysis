@@ -1,0 +1,19 @@
+# Override untuk server: frontend digabung ke jaringan Docker milik reverse proxy (nginx server),
+# sehingga nginx bisa meneruskan /sentiment-analysis/ ke http://sentiment-frontend:8080/
+# (lihat deploy/nginx/sentiment-analysis.conf).
+#
+#   docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  frontend:
+    ports: !reset []
+    networks:
+      internal:
+      proxy:
+        aliases:
+          - sentiment-frontend
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK:?isi PROXY_NETWORK di .env (nama network Docker milik nginx server)}
+    external: true

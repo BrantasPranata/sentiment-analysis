@@ -1,0 +1,29 @@
+# Dependensi pipeline (scraper + sentimen). Dipakai oleh Docker dan instalasi lokal.
+# Mac (Apple Silicon): pakai requirements-mac.txt agar verifikator Qwen (MLX) ikut terpasang.
+
+# --- Database & konfigurasi ---
+mysql-connector-python
+python-dotenv
+
+# --- Scraping ---
+requests
+beautifulsoup4
+feedparser
+googlenewsdecoder
+playwright
+scrapetube
+youtube-transcript-api
+youtube-comment-downloader
+yt-dlp
+static-ffmpeg
+
+# --- Machine learning / NLP ---
+torch
+torchvision
+transformers
+accelerate
+easyocr
+faster-whisper
+argostranslate
+pillow
+regex
